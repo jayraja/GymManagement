@@ -1,6 +1,8 @@
 ﻿using GymManagement.Application.Gyms.Commands.CreateGym;
+using GymManagement.Application.Gyms.Commands.DeleteGym;
+using GymManagement.Application.Gyms.Queries.GetGym;
+using GymManagement.Application.Gyms.Queries.ListGyms;
 using GymManagement.Contracts.Gyms;
-using GymManagement.Domain.Gyms;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -29,12 +31,42 @@ public class GymsController : ControllerBase
                 nameof(GetGym),
                 new { subscriptionId, GymId = gym.Id },
                 new GymResponse(gym.Id, gym.Name)),
+            _ => Problem(createGymResult.FirstError.ToString()));
+    }
+
+    [HttpGet("{gymId:guid}")]
+    public async Task<IActionResult> GetGym(Guid gymId, Guid subscriptionId)
+    {
+        var command = new GetGymQuery(subscriptionId, gymId);
+
+        var gymResult = await _mediator.Send(command);
+
+        return gymResult.Match(
+            gym => Ok(new GymResponse(gym.Id, gym.Name)), 
             _ => Problem());
     }
 
-    [HttpGet]
-    public async Task<ActionResult<Gym>> GetGym(Guid id, Guid subscriptionId)
+    [HttpDelete("{gymId:guid}")]
+    public async Task<IActionResult> DeleteGym(Guid gymId, Guid subscriptionId)
     {
-        throw new NotImplementedException();
+        var command = new DeleteGymCommand(subscriptionId, gymId);
+
+        var result = await _mediator.Send(command);
+
+        return result.Match<IActionResult>(
+            _ => NoContent(),
+            _ => Problem(result.FirstError.ToString()));
+    }
+
+    [HttpGet()]
+    public async Task<IActionResult> ListGyms(Guid subscriptionId)
+    {
+        var command = new ListGymsQuery(subscriptionId);
+
+        var gymsResult = await _mediator.Send(command);
+
+        return gymsResult.Match(
+            gyms => Ok(gyms.ConvertAll(gym => new GymResponse(gym.Id, gym.Name))),
+            _ => Problem());
     }
 }
