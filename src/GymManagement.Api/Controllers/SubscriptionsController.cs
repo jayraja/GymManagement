@@ -50,13 +50,15 @@ public class SubscriptionsController : ControllerBase
             error => Problem());
     }
 
-    //[HttpDelete("{subscriptionId:guid}")]
-    //public async Task<IActionResult> DeleteSubscription(Guid subscriptionId)
-    //{
-    //    var command = new DeleteSubscriptionCommand(subscriptionId);
+    [HttpDelete("{subscriptionId:guid}")]
+    public async Task<IActionResult> DeleteSubscription(Guid subscriptionId)
+    {
+        var command = new DeleteSubscriptionCommand(subscriptionId);
 
-    //    var deleteSubscriptionResult = await _mediator.Send(command);
+        var deleteSubscriptionResult = await _mediator.Send(command);
 
-    //    //return deleteSubscriptionResult.MatchFirst()
-    //}
+        return deleteSubscriptionResult.Match<IActionResult>(
+           _ => NoContent(),
+           _ => Problem());
+    }
 }

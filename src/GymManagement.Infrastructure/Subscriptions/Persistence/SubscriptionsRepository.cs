@@ -24,9 +24,28 @@ public class SubscriptionsRepository : ISubscriptionsRepository
         return await _dbContext.Subscriptions.AsNoTracking().AnyAsync(s => s.Id == id);
     }
 
+    public async Task<Subscription?> GetByAdminIdAsync(Guid adminId)
+    {
+        return await _dbContext.Subscriptions
+            .AsNoTracking()
+            .FirstOrDefaultAsync(subscription => subscription.AdminId == adminId);
+    }
+
     public async Task<Subscription?> GetByIdAsync(Guid subscriptionId)
     {
         return await _dbContext.Subscriptions.FirstOrDefaultAsync(s => s.Id == subscriptionId);
+    }
+
+    public async Task<List<Subscription>> ListAsync()
+    {
+        return await _dbContext.Subscriptions.ToListAsync();
+    }
+
+    public Task RemoveSubscriptionAsync(Subscription subscription)
+    {
+        _dbContext.Remove(subscription);
+
+        return Task.CompletedTask;
     }
 
     public Task UpdateAsync(Subscription subscription)
